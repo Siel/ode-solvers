@@ -189,7 +189,7 @@ where
     }
 
     /// Compute the initial stepsize
-    fn hinit(&self) -> f64 {
+    fn hinit(&mut self) -> f64 {
         let (rows, cols) = self.y.shape_generic();
         let mut f0 = OVector::zeros_generic(rows, cols);
         self.f.system(self.x, &self.y, &mut f0);
