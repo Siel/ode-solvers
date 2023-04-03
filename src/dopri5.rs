@@ -181,7 +181,7 @@ where
     fn hinit(&mut self) -> f64 {
         let (rows, cols) = self.y.shape_generic();
         let mut f0 = OVector::zeros_generic(rows, cols);
-        self.f.system(self.x, &self.y, &mut f0);
+        self.f.system(self.x, &mut self.y, &mut f0);
         let posneg = sign(1.0, self.x_end - self.x);
 
         // Compute the norm of y0 and f0
@@ -206,9 +206,9 @@ where
         h0 = h0.min(self.controller.h_max());
         h0 = sign(h0, posneg);
 
-        let y1 = &self.y + &f0 * h0.to_subset().unwrap();
+        let mut y1 = &self.y + &f0 * h0.to_subset().unwrap();
         let mut f1 = OVector::zeros_generic(rows, cols);
-        self.f.system(self.x + h0, &y1, &mut f1);
+        self.f.system(self.x + h0, &mut y1, &mut f1);
 
         // Compute the norm of f1-f0 divided by h0
         let mut d2: f64 = 0.0;
@@ -259,7 +259,7 @@ where
         }
 
         let mut k = vec![OVector::zeros_generic(rows, cols); 7];
-        self.f.system(self.x, &self.y, &mut k[0]);
+        self.f.system(self.x, &mut self.y, &mut k[0]);
         self.stats.num_eval += 1;
 
         // Main loop
@@ -294,7 +294,7 @@ where
                 }
                 self.f.system(
                     self.x + self.h * dopri54::c::<f64>(s + 1),
-                    &y_next,
+                    &mut y_next,
                     &mut k[s],
                 );
                 if s == 5 {

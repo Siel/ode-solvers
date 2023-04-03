@@ -189,7 +189,7 @@ where
     fn hinit(&mut self) -> f64 {
         let (rows, cols) = self.y.shape_generic();
         let mut f0 = OVector::zeros_generic(rows, cols);
-        self.f.system(self.x, &self.y, &mut f0);
+        self.f.system(self.x, &mut self.y, &mut f0);
         let posneg = sign(1.0, self.x_end - self.x);
 
         // Compute the norm of y0 and f0
@@ -214,9 +214,9 @@ where
         h0 = h0.min(self.controller.h_max());
         h0 = sign(h0, posneg);
 
-        let y1 = &self.y + &f0 * h0.to_subset().unwrap();
+        let mut y1 = &self.y + &f0 * h0.to_subset().unwrap();
         let mut f1 = OVector::zeros_generic(rows, cols);
-        self.f.system(self.x + h0, &y1, &mut f1);
+        self.f.system(self.x + h0, &mut y1, &mut f1);
 
         // Compute the norm of f1-f0 divided by h0
         let mut d2: f64 = 0.0;
@@ -265,7 +265,7 @@ where
         self.solution_output(y_tmp);
 
         let mut k = vec![OVector::zeros_generic(rows, cols); 12];
-        self.f.system(self.x, &self.y, &mut k[0]);
+        self.f.system(self.x, &mut self.y, &mut k[0]);
         self.stats.num_eval += 1;
 
         // Main loop
@@ -301,7 +301,7 @@ where
                 }
                 self.f.system(
                     self.x + (self.h * dopri853::c::<f64>(s + 1)),
-                    &y_next,
+                    &mut y_next,
                     &mut k[s],
                 );
             }
@@ -353,8 +353,8 @@ where
             // Step size control
             if self.controller.accept(err, self.h, &mut h_new) {
                 self.stats.accepted_steps += 1;
-                let y_tmp = k[4].clone();
-                self.f.system(self.x + self.h, &y_tmp, &mut k[3]);
+                let mut y_tmp = k[4].clone();
+                self.f.system(self.x + self.h, &mut y_tmp, &mut k[3]);
                 self.stats.num_eval += 1;
 
                 // Stifness detection
@@ -409,8 +409,11 @@ where
                             + &k[2] * dopri853::a(14, 12)
                             + &k[3] * dopri853::a(14, 13))
                             * h;
-                    self.f
-                        .system(self.x + self.h * dopri853::c::<f64>(14), &y_next, &mut k[9]);
+                    self.f.system(
+                        self.x + self.h * dopri853::c::<f64>(14),
+                        &mut y_next,
+                        &mut k[9],
+                    );
 
                     y_next = &self.y
                         + (&k[0] * dopri853::a(15, 1)
@@ -422,8 +425,11 @@ where
                             + &k[3] * dopri853::a(15, 13)
                             + &k[9] * dopri853::a(15, 14))
                             * h;
-                    self.f
-                        .system(self.x + self.h * dopri853::c::<f64>(15), &y_next, &mut k[1]);
+                    self.f.system(
+                        self.x + self.h * dopri853::c::<f64>(15),
+                        &mut y_next,
+                        &mut k[1],
+                    );
 
                     y_next = &self.y
                         + (&k[0] * dopri853::a(16, 1)
@@ -435,8 +441,11 @@ where
                             + &k[9] * dopri853::a(16, 14)
                             + &k[1] * dopri853::a(16, 15))
                             * h;
-                    self.f
-                        .system(self.x + self.h * dopri853::c::<f64>(16), &y_next, &mut k[2]);
+                    self.f.system(
+                        self.x + self.h * dopri853::c::<f64>(16),
+                        &mut y_next,
+                        &mut k[2],
+                    );
 
                     self.stats.num_eval += 3;
 
