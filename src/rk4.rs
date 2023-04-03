@@ -77,7 +77,7 @@ where
     }
 
     /// Performs one step of the Runge-Kutta 4 method.
-    fn step(&self) -> (f64, OVector<T, D>) {
+    fn step(&mut self) -> (f64, OVector<T, D>) {
         let (rows, cols) = self.y.shape_generic();
         let mut k = vec![OVector::zeros_generic(rows, cols); 12];
 
@@ -127,7 +127,7 @@ mod tests {
     where
         DefaultAllocator: Allocator<f64, D>,
     {
-        fn system(&self, x: f64, y: &OVector<f64, D>, dy: &mut OVector<f64, D>) {
+        fn system(&mut self, x: f64, y: &OVector<f64, D>, dy: &mut OVector<f64, D>) {
             dy[0] = (x - y[0]) / 2.;
         }
     }
@@ -137,7 +137,7 @@ mod tests {
     where
         DefaultAllocator: Allocator<f64, D>,
     {
-        fn system(&self, x: f64, y: &OVector<f64, D>, dy: &mut OVector<f64, D>) {
+        fn system(&mut self, x: f64, y: &OVector<f64, D>, dy: &mut OVector<f64, D>) {
             dy[0] = -2. * x - y[0];
         }
     }
@@ -147,7 +147,7 @@ mod tests {
     where
         DefaultAllocator: Allocator<f64, D>,
     {
-        fn system(&self, x: f64, y: &OVector<f64, D>, dy: &mut OVector<f64, D>) {
+        fn system(&mut self, x: f64, y: &OVector<f64, D>, dy: &mut OVector<f64, D>) {
             dy[0] = (5. * x * x - y[0]) / (x + y[0]).exp();
         }
     }
