@@ -7,11 +7,11 @@ use num_traits::Zero;
 use simba::scalar::{ClosedAdd, ClosedMul, ClosedNeg, ClosedSub, SubsetOf};
 
 /// Structure containing the parameters for the numerical integration.
-pub struct Rk4<V, F>
+pub struct Rk4<'a, V, F>
 where
     F: System<V>,
 {
-    f: F,
+    f: &'a mut F,
     x: f64,
     y: V,
     x_end: f64,
@@ -22,7 +22,7 @@ where
     stats: Stats,
 }
 
-impl<T, D: Dim, F> Rk4<OVector<T, D>, F>
+impl<'a, T, D: Dim, F> Rk4<'a, OVector<T, D>, F>
 where
     f64: From<T>,
     T: Copy + SubsetOf<f64> + Scalar + ClosedAdd + ClosedMul + ClosedSub + ClosedNeg + Zero,
@@ -40,7 +40,7 @@ where
     /// * `x_end`       - Final value of the independent variable
     /// * `step_size`   - Step size used in the method
     ///
-    pub fn new(f: F, x: f64, y: OVector<T, D>, x_end: f64, step_size: f64) -> Self {
+    pub fn new(f: &'a mut F, x: f64, y: OVector<T, D>, x_end: f64, step_size: f64) -> Self {
         Rk4 {
             f,
             x,
@@ -126,6 +126,7 @@ mod tests {
     use crate::{DVector, OVector, System, Vector1};
     use nalgebra::{allocator::Allocator, DefaultAllocator, Dim};
 
+    #[derive(Clone)]
     struct Test1 {}
     impl<D: Dim> System<OVector<f64, D>> for Test1
     where
@@ -135,7 +136,7 @@ mod tests {
             dy[0] = (x - y[0]) / 2.;
         }
     }
-
+    #[derive(Clone)]
     struct Test2 {}
     impl<D: Dim> System<OVector<f64, D>> for Test2
     where
@@ -146,6 +147,7 @@ mod tests {
         }
     }
 
+    #[derive(Clone)]
     struct Test3 {}
     impl<D: Dim> System<OVector<f64, D>> for Test3
     where
@@ -158,8 +160,8 @@ mod tests {
 
     #[test]
     fn test_integrate_test1_svector() {
-        let system = Test1 {};
-        let mut stepper = Rk4::new(system, 0., Vector1::new(1.), 0.2, 0.1);
+        let mut system = Test1 {};
+        let mut stepper = Rk4::new(&mut system, 0., Vector1::new(1.), 0.2, 0.1);
         let _ = stepper.integrate();
         let x_out = stepper.x_out();
         let y_out = stepper.y_out();
@@ -170,8 +172,8 @@ mod tests {
 
     #[test]
     fn test_integrate_test2_svector() {
-        let system = Test2 {};
-        let mut stepper = Rk4::new(system, 0., Vector1::new(-1.), 0.5, 0.1);
+        let mut system = Test2 {};
+        let mut stepper = Rk4::new(&mut system, 0., Vector1::new(-1.), 0.5, 0.1);
         let _ = stepper.integrate();
         let x_out = stepper.x_out();
         let y_out = stepper.y_out();
@@ -182,8 +184,8 @@ mod tests {
 
     #[test]
     fn test_integrate_test3_svector() {
-        let system = Test3 {};
-        let mut stepper = Rk4::new(system, 0., Vector1::new(1.), 1., 0.1);
+        let mut system = Test3 {};
+        let mut stepper = Rk4::new(&mut system, 0., Vector1::new(1.), 1., 0.1);
         let _ = stepper.integrate();
         let out = stepper.y_out();
         assert!((&out[5][0] - 0.913059839).abs() < 1.0E-9);
@@ -193,8 +195,8 @@ mod tests {
 
     #[test]
     fn test_integrate_test1_dvector() {
-        let system = Test1 {};
-        let mut stepper = Rk4::new(system, 0., DVector::from(vec![1.]), 0.2, 0.1);
+        let mut system = Test1 {};
+        let mut stepper = Rk4::new(&mut system, 0., DVector::from(vec![1.]), 0.2, 0.1);
         let _ = stepper.integrate();
         let x_out = stepper.x_out();
         let y_out = stepper.y_out();
@@ -205,8 +207,8 @@ mod tests {
 
     #[test]
     fn test_integrate_test2_dvector() {
-        let system = Test2 {};
-        let mut stepper = Rk4::new(system, 0., DVector::from(vec![-1.]), 0.5, 0.1);
+        let mut system = Test2 {};
+        let mut stepper = Rk4::new(&mut system, 0., DVector::from(vec![-1.]), 0.5, 0.1);
         let _ = stepper.integrate();
         let x_out = stepper.x_out();
         let y_out = stepper.y_out();
@@ -217,8 +219,8 @@ mod tests {
 
     #[test]
     fn test_integrate_test3_dvector() {
-        let system = Test3 {};
-        let mut stepper = Rk4::new(system, 0., DVector::from(vec![1.]), 1., 0.1);
+        let mut system = Test3 {};
+        let mut stepper = Rk4::new(&mut system, 0., DVector::from(vec![1.]), 1., 0.1);
         let _ = stepper.integrate();
         let out = stepper.y_out();
         assert!((&out[5][0] - 0.913059839).abs() < 1.0E-9);
