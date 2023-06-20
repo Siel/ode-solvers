@@ -55,7 +55,7 @@ where
     }
 
     /// Core integration method.
-    pub fn integrate(&mut self) -> (F,Result<Stats, IntegrationError>) {
+    pub fn integrate(&mut self) -> Result<Stats, IntegrationError> {
         // Save initial values
         self.x_out.push(self.x);
         self.y_out.push(self.y.clone());
@@ -73,7 +73,7 @@ where
             self.stats.num_eval += 4;
             self.stats.accepted_steps += 1;
         }
-        (self.f.clone(),Ok(self.stats))
+        Ok(self.stats)
     }
 
     /// Performs one step of the Runge-Kutta 4 method.
@@ -108,6 +108,10 @@ where
     /// Getter for the independent variable's output.
     pub fn x_out(&self) -> &Vec<f64> {
         &self.x_out
+    }
+
+    pub fn system(&self) -> F {
+        self.f.clone()
     }
 
     /// Getter for the dependent variables' output.
