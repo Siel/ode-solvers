@@ -26,7 +26,7 @@ impl<T, D: Dim, F> Rk4<OVector<T, D>, F>
 where
     f64: From<T>,
     T: Copy + SubsetOf<f64> + Scalar + ClosedAdd + ClosedMul + ClosedSub + ClosedNeg + Zero,
-    F: System<OVector<T, D>>,
+    F: System<OVector<T, D>> + Clone,
     OVector<T, D>: std::ops::Mul<f64, Output = OVector<T, D>>,
     DefaultAllocator: Allocator<T, D>,
 {
