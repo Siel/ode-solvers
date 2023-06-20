@@ -73,7 +73,7 @@ where
             self.stats.num_eval += 4;
             self.stats.accepted_steps += 1;
         }
-        (self.f,Ok(self.stats))
+        (self.f.clone(),Ok(self.stats))
     }
 
     /// Performs one step of the Runge-Kutta 4 method.
